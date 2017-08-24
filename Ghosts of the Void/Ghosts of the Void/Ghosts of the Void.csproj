@@ -78,6 +78,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Ship\Gimball.cs" />
     <Compile Include="Assets\Ship\PID.cs" />
     <Compile Include="Assets\Ship\Ship.cs" />
     <Compile Include="Assets\Ship\ShipMovement.cs" />

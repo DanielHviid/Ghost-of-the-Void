@@ -4,7 +4,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-public class ShipMovement : MonoBehaviour {
+public class ShipMovement : Ship
+{
 
 	// Public information
 	public Vector3 targetLocation;
@@ -14,17 +15,17 @@ public class ShipMovement : MonoBehaviour {
 	float targetDistance;
 	Vector3 targetCrossProduct;
 	Vector2 targetAngles;
-		
+
 	// Ship information
 	Vector3 velocity;
 	Vector3 bearing;
 	Vector3 adjustedBearings;       // adjusts to reduce sideways circular movement
-	Vector3 adjustedCross;			// adjusts to reduce sideways circular movement
+	Vector3 adjustedCross;          // adjusts to reduce sideways circular movement
 	Vector3 adjustedAngels;         // adjusts to reduce sideways circular movement
 	bool strafingBool;
 	float strafingDistance = 10;
-	Vector3 strafingDirection;		// does not change when strafing.
-	Vector3 strafingCrossProduct;	// does not change when strafing.
+	Vector3 strafingDirection;      // does not change when strafing.
+	Vector3 strafingCrossProduct;   // does not change when strafing.
 	Vector2 strafingAngles;         // does not change when strafing.
 
 	// ship movement parameters
@@ -50,7 +51,8 @@ public class ShipMovement : MonoBehaviour {
 
 
 	// Use this for initialization
-	void Start () {
+	void Start()
+	{
 
 		targetLocation = transform.position;
 		rb = GetComponent<Rigidbody>();
@@ -60,25 +62,26 @@ public class ShipMovement : MonoBehaviour {
 
 		// initiate PIDS -							totalGain, p, i, d, maxInt
 		// position
-		forwardPID =			new controllerSystem.PID(2, 25f, 0.1f, 10f, 1);
-		forwardVelocityPID =	new controllerSystem.PID(50, 0.1f, 0, 0.1f, 1);
-		lateralPID =			new controllerSystem.PID(1, 5, 1, 0, 3);
-		lateralVelocityPID =	new controllerSystem.PID(0.1f, 1, 1, 1, 1);
-		verticalPID =			new controllerSystem.PID(1, 5, 1, 1, 3);
-		verticalVelocityPID =	new controllerSystem.PID(0.1f, 1, 1, 1, 1);
+		forwardPID = new controllerSystem.PID(2, 25f, 0.1f, 10f, 1);
+		forwardVelocityPID = new controllerSystem.PID(50, 0.1f, 0, 0.1f, 1);
+		lateralPID = new controllerSystem.PID(1, 5, 1, 0, 3);
+		lateralVelocityPID = new controllerSystem.PID(0.1f, 1, 1, 1, 1);
+		verticalPID = new controllerSystem.PID(1, 5, 1, 1, 3);
+		verticalVelocityPID = new controllerSystem.PID(0.1f, 1, 1, 1, 1);
 		// initiate PIDS -							totalGain, p, i, d, maxInt
 		// direction
-		pitchPID =				new controllerSystem.PID(0.01f, 0.1f, 0.5f, 5, 1);
-		pitchVelocityPID =		new controllerSystem.PID(1, 0.1f, 0, 1, 1);
-		yawPID =				new controllerSystem.PID(0.01f, 0.1f, 0.5f, 5, 1);
-		yawVelocityPID =		new controllerSystem.PID(1, 0.1f, 0, 1, 1);
-		rollPID =				new controllerSystem.PID(0.01f, 0.1f, 0.5f, 5, 1);
-		rollVelocityPID =		new controllerSystem.PID(1, 0.1f, 0, 1, 1);
+		pitchPID =			new controllerSystem.PID(0.01f, 0.1f, 0.5f, 5, 1);
+		pitchVelocityPID =	new controllerSystem.PID(1, 0.1f, 0, 1, 1);
+		yawPID =			new controllerSystem.PID(0.01f, 0.1f, 0.5f, 5, 1);
+		yawVelocityPID =	new controllerSystem.PID(1, 0.1f, 0, 1, 1);
+		rollPID =			new controllerSystem.PID(0.01f, 0.1f, 0.5f, 5, 1);
+		rollVelocityPID =	new controllerSystem.PID(1, 0.1f, 0, 1, 1);
 	}
-	
+
 	// Update is called once per frame
-	void Update () {
-		
+	void Update()
+	{
+
 	}
 
 	private void FixedUpdate()
@@ -86,12 +89,12 @@ public class ShipMovement : MonoBehaviour {
 		dt = Time.fixedDeltaTime;
 
 		updateDirections(); // update information on target and bearings.
-		applyThrust();
+		//applyThrust();
 		applyTorque();
 
-		Debug.DrawRay(transform.position, transform.forward * 100, Color.green, 0f, false);
-		Debug.DrawRay(transform.position, transform.right * 100, Color.green, 0f, false);
-		Debug.DrawRay(transform.position, transform.up * 100, Color.green, 0f, false);
+		//Debug.DrawRay(transform.position, transform.forward * 100, Color.green, 0f, false);
+		//Debug.DrawRay(transform.position, transform.right * 100, Color.green, 0f, false);
+		//Debug.DrawRay(transform.position, transform.up * 100, Color.green, 0f, false);
 
 	}
 
@@ -104,14 +107,14 @@ public class ShipMovement : MonoBehaviour {
 	private void updateDirections()
 	{
 		targetDirection = (targetLocation - transform.position).normalized; // Global space
-		targetDistance = (targetLocation - transform.position).magnitude;	
-		bearing = transform.InverseTransformDirection(targetDirection);		// Local space
-		velocity = transform.InverseTransformDirection(rb.velocity);		// Local space
+		targetDistance = (targetLocation - transform.position).magnitude;
+		bearing = transform.InverseTransformDirection(targetDirection);     // Local space
+		velocity = transform.InverseTransformDirection(rb.velocity);        // Local space
 
 		// change this for 3d.
 		targetCrossProduct = Vector3.Cross(transform.forward, targetDirection);     // Global space
-		
-		strafingCrossProduct = Vector3.Cross(transform.forward, strafingDirection);	// Global space
+
+		strafingCrossProduct = Vector3.Cross(transform.forward, strafingDirection); // Global space
 
 		Vector3 tempVector = transform.InverseTransformDirection(targetDirection);  // Local space
 
@@ -156,7 +159,7 @@ public class ShipMovement : MonoBehaviour {
 			else
 				strafingAngles.y = Vector3.Angle(transform.InverseTransformDirection(transform.forward), strafingDirection);
 		}
-		
+
 		//Get adjusted bearing angles
 		if (targetDistance > rb.velocity.magnitude)
 		{
@@ -181,7 +184,7 @@ public class ShipMovement : MonoBehaviour {
 			adjustedAngels = targetAngles;
 		}
 		Debug.DrawRay(transform.position, targetDirection * targetDistance, Color.red, 0f, false);
-		
+
 
 	}
 
@@ -194,15 +197,14 @@ public class ShipMovement : MonoBehaviour {
 
 
 		force.z += forwardPID.getOutput(bearing.z, dt);
-		print(force.z);
 		force.z += forwardVelocityPID.getOutput(-velocity.z, dt);
-		print(force.z);
+
 		if (force.z < -maxBackwardThrust)
 			force.z = -maxBackwardThrust;
 		else if (force.z > maxForwardThrust)
 			force.z = maxForwardThrust;
-		//force.y += verticalPID.getOutput(bearing.y, dt);
-		//force.y += verticalVelocityPID.getOutput(-velocity.y, dt);
+		force.y += verticalPID.getOutput(bearing.y, dt);
+		force.y += verticalVelocityPID.getOutput(-velocity.y, dt);
 		if (force.y < -maxVerticalThrust)
 			force.y = -maxVerticalThrust;
 		else if (force.y > maxVerticalThrust)
@@ -213,17 +215,9 @@ public class ShipMovement : MonoBehaviour {
 			force.x = -maxVerticalThrust;
 		else if (force.x > maxVerticalThrust)
 			force.x = maxVerticalThrust;
-		//lateralPID = ForcePID(l_deadzone, l_pidGain, l_pGain, l_iGain, l_dGain, ref l_I, l_iMax, bearing.x, velocity.x, l_maxThrust, l_maxVelocity);
-		//verticalPID = ForcePID(v_deadzone, v_pidGain, v_pGain, v_iGain, v_dGain, ref v_I, v_iMax, bearing.y, velocity.y, v_maxThrust, v_maxVelocity);
 
-
-		//rb.AddForce(transform.TransformDirection(force));
 		rb.AddForce(transform.forward * force.z + transform.up * force.y + transform.right * force.x);
-		print(force.z);
-		print(velocity.z);
-		//rb.AddForce(transform.forward * forwardPID + transform.right * lateralPID + transform.up * verticalPID);
-		//rb.AddForce(transform.right* lateralPID);
-		//rb.AddForce(transform.up * verticalPID);
+
 
 
 
@@ -231,147 +225,39 @@ public class ShipMovement : MonoBehaviour {
 
 	private void applyTorque()
 	{
-		Vector3 torque = new Vector3(0,0,0);
+		Vector3 torque = new Vector3(0, 0, 0);
 
 		if (strafingBool)
 		{
-			//torque.y = ForcePID(y_deadzone, y_pidGain, y_pGain, y_iGain, y_dGain, ref y_I, y_iMax, strafingAngles.x, rb.angularVelocity.y, y_maxThrust, y_maxVelocity);
-			//torque.x = 
+			torque.y += yawPID.getOutput(strafingAngles.x, dt);
+			torque.y += yawVelocityPID.getOutput(-rb.angularVelocity.y, dt);
+
+			torque.x += pitchPID.getOutput(strafingAngles.y, dt);
+			torque.x += pitchVelocityPID.getOutput(-rb.angularVelocity.x, dt);
 		}
 		else
 		{
 			torque.y += yawPID.getOutput(adjustedAngels.x, dt);
 			torque.y += yawVelocityPID.getOutput(-rb.angularVelocity.y, dt);
-			//torque.y = ForcePID(y_deadzone, y_pidGain, y_pGain, y_iGain, y_dGain, ref y_I, y_iMax, adjustedAngels.x, rb.angularVelocity.y, y_maxThrust, y_maxVelocity);
+
+			torque.x += pitchPID.getOutput(strafingAngles.y, dt);
+			torque.x += pitchVelocityPID.getOutput(-rb.angularVelocity.x, dt);
 		}
+
+		print(rb.angularVelocity.x);
 
 		if (torque.y < -maxYawTorque)
 			torque.y = -maxYawTorque;
 		else if (torque.y > maxYawTorque)
 			torque.y = maxYawTorque;
-		
+
+		if (torque.x < -maxPitchTorque)
+			torque.x = -maxPitchTorque;
+		else if (torque.x > maxPitchTorque)
+			torque.x = maxPitchTorque;
+
 
 		rb.AddTorque(transform.TransformDirection(torque));
-		//transform.InverseTransformDirection(new Vector3(1,0,0))
 
 	}
-
-	/*
-	float ForcePID(float deadzone, float gain, float pGain, float iGain, float dGain, ref float integral, float iMax, float distance, float velocity, float maxThrust, float maxVelocity)
-	{
-		float thrust;
-		if (distance > deadzone || distance < -deadzone)
-		{
-
-			thrust = PID(gain, pGain, iGain, dGain, ref integral, iMax, distance, velocity, maxThrust);
-
-			//print("Thrust is");
-			//print(thrust);
-
-			if (thrust + velocity > maxVelocity || velocity > maxVelocity)
-			{
-				if (velocity > maxVelocity)
-				{
-				}
-				thrust = maxVelocity - velocity;
-			}
-			else if (thrust + velocity < -maxVelocity || velocity < -maxVelocity)
-			{
-				thrust = -maxVelocity - velocity;
-			}
-		}
-		else
-		{
-			thrust = PID(gain, 0, 0, dGain, ref integral, iMax, distance, velocity, maxThrust);
-		}
-
-		//print(new Vector4(thrust, velocity, -maxVelocity, maxVelocity));
-
-		return thrust;
-	}
-
-	float ForcePID(float deadzone, float gain, float pGain, float iGain, float dGain, ref float integral, float iMax, float distance, float velocity, float maxThrust, float maxReverseThrust, float maxVelocity, float maxReverseVelocity)
-	{
-		float thrust;
-
-		thrust = PID(gain, pGain, iGain, dGain, ref integral, iMax, distance, velocity, maxThrust, maxReverseThrust);
-
-		if (thrust + velocity > maxVelocity)
-		{
-			thrust = maxVelocity - velocity;
-		}
-		else if (thrust + velocity < -maxReverseVelocity)
-		{
-			thrust = -maxReverseVelocity - velocity;
-		}
-		return thrust;
-	}
-
-	float PID(float gain, float pGain, float iGain, float dGain, ref float integral, float iMax, float distance, float velocity, float maxThrust)
-{
-	float pid;
-
-	integral += iGain * distance;
-
-	if (integral > iMax)
-	{
-		integral = iMax;
-	}
-	else if (integral < -iMax)
-	{
-		integral = -iMax;
-	}
-
-
-
-	pid = gain * (pGain * distance + integral - (dGain * velocity));
-
-
-	if (pid < -maxThrust)
-	{
-		return -maxThrust;
-
-	}
-	if (pid > maxThrust)
-	{
-		return maxThrust;
-	}
-
-
-	return pid;
-}
-
-	float PID(float gain, float pGain, float iGain, float dGain, ref float integral, float iMax, float distance, float velocity, float maxThrust, float maxReverseThrust)
-	{
-		float pid;
-
-		integral += iGain * distance;
-
-		if (integral > iMax)
-		{
-			integral = iMax;
-		}
-		else if (integral < -iMax)
-		{
-			integral = -iMax;
-		}
-
-
-
-		pid = gain * (pGain * distance + integral - (dGain * velocity));
-
-		if (pid < -maxReverseThrust)
-		{
-			return -maxReverseThrust;
-
-		}
-		if (pid > maxThrust)
-		{
-			return maxThrust;
-		}
-
-
-		return pid;
-	}
-	*/
 }
